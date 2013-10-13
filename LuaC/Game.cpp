@@ -11,17 +11,23 @@ MakeWrapper(MouseWrapper, (int button, int state, int x, int y), (button, state,
 
 Game::Game(void)
 {
-
 }
+
 
 
 Game::~Game(void)
 {
 }
 
+void Game::Scripting_OnSetGodMode(Scripting*, EventArgs<int> args)
+{
+	MessageBoxEx(0, L"", L"TEST", 0, 0);
+}
 
 void Game::Init()
 {
+
+
 	int i = 0;
 	glutInit(&i, NULL);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_ALPHA);
@@ -36,6 +42,7 @@ void Game::Init()
 
 
 	m_scripting.Init();
+	m_scripting.SetGodeModeEvent.attach<Game, &Game::Scripting_OnSetGodMode>(this);
 
 }
 

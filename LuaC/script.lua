@@ -1,8 +1,5 @@
 print("Hello from Lua")
-
-cppfunction(5);
-
-ll();
+SetGodMode(true);
 
 --[[
 Milestones:

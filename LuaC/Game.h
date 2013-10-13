@@ -23,5 +23,6 @@ private:
 
 
 	Scripting m_scripting;
+	void Scripting_OnSetGodMode(Scripting*, EventArgs<int>);
 };
 

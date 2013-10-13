@@ -80,6 +80,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CppWrapper.h" />
+    <ClInclude Include="Delegate.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="LuaC.h" />
     <ClInclude Include="Scripting.h" />

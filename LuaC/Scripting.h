@@ -1,4 +1,10 @@
 #pragma once
+
+#include <vector>
+#include "Delegate.h"
+
+using namespace std;
+
 class Scripting
 {
 public:
@@ -12,6 +18,8 @@ public:
 	const char *GetError();
 
 	void RenderHUD();
+
+	Event<Scripting, int> SetGodeModeEvent;
 
 private:
 	lua_State *luaState;

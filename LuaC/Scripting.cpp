@@ -30,6 +30,9 @@ void Scripting::Init(void)
 	lua_pushcfunction(luaState, GetWrapper(LuaCppFunction, &Scripting::l_cppfunction));
 	lua_setglobal(luaState, "cppfunction");
 
+	lua_pushcfunction(luaState, GetWrapper(LuaCppFunction, &Scripting::lua_SetGodMode));
+	lua_setglobal(luaState, "SetGodMode");
+
 }
 
 int Scripting::lua_atPanicFunctuon(lua_State *L)
@@ -79,3 +82,31 @@ void Scripting::RenderHUD()
 		glutBitmapString(GLUT_BITMAP_HELVETICA_10, (const unsigned char *)GetError());
 	}
 }
+
+int Scripting::lua_CreateButton(lua_State *L)
+{
+	return 0;
+}
+
+int Scripting::lua_CreateLabel(lua_State *L)
+{
+	return 0;
+}
+
+int Scripting::lua_CreateTextField(lua_State *L)
+{
+	return 0;
+}
+
+int Scripting::lua_CreateImage(lua_State *L)
+{
+	return 0;
+}
+
+int Scripting::lua_SetGodMode(lua_State *L)
+{
+	this->SetGodeModeEvent.OnEvent(this, EventArgs<int>(0));
+
+	return 0;
+}
+
