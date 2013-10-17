@@ -36,6 +36,21 @@
     <ClInclude Include="Delegate.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="UIElement.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="UIButton.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="UILabel.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="UITextField.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="UIImage.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -48,6 +63,21 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Scripting.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="UIElement.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="UIButton.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="UILabel.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="UITextField.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="UIImage.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

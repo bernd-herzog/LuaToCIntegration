@@ -2,8 +2,10 @@
 
 #include <vector>
 #include "Delegate.h"
+#include "UIElement.h"
 
 using namespace std;
+
 
 class Scripting
 {
@@ -21,6 +23,9 @@ public:
 
 	Event<Scripting, int> SetGodeModeEvent;
 
+	void MouseEvent(int button, int state, int x, int y);
+	void KeyboardEvent(unsigned char c, int p1, int p2);
+
 private:
 	lua_State *luaState;
 
@@ -28,7 +33,6 @@ private:
 	jmp_buf jumpBuffer;
 
 	int lua_atPanicFunctuon(lua_State *L); 
-	int l_cppfunction(lua_State *L);
 
 	//Called from LUA
 	int lua_CreateButton(lua_State *L);
@@ -37,6 +41,8 @@ private:
 	int lua_CreateImage(lua_State *L);
 
 	int lua_SetGodMode(lua_State *L);
+
+	vector<UIElement *> m_uiElements;		
 
 };
 

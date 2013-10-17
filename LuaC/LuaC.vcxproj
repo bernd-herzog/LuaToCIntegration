@@ -86,6 +86,11 @@
     <ClInclude Include="Scripting.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="UIButton.h" />
+    <ClInclude Include="UIElement.h" />
+    <ClInclude Include="UIImage.h" />
+    <ClInclude Include="UILabel.h" />
+    <ClInclude Include="UITextField.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp" />
@@ -95,6 +100,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="UIButton.cpp" />
+    <ClCompile Include="UIElement.cpp" />
+    <ClCompile Include="UIImage.cpp" />
+    <ClCompile Include="UILabel.cpp" />
+    <ClCompile Include="UITextField.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="script.lua" />

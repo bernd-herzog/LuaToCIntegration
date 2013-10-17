@@ -26,8 +26,6 @@ void Game::Scripting_OnSetGodMode(Scripting*, EventArgs<int> args)
 
 void Game::Init()
 {
-
-
 	int i = 0;
 	glutInit(&i, NULL);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_ALPHA);
@@ -43,7 +41,6 @@ void Game::Init()
 
 	m_scripting.Init();
 	m_scripting.SetGodeModeEvent.attach<Game, &Game::Scripting_OnSetGodMode>(this);
-
 }
 
 void Game::MainLoop()
@@ -112,6 +109,9 @@ void Game::glutReshape(int w, int h)
 
 void Game::glutKeyboard(unsigned char c, int p1, int p2)
 {
+	m_scripting.KeyboardEvent(c, p1, p2);
+
+	/*
 	if (c == 'f')
 	{
 		glutFullScreenToggle();
@@ -119,10 +119,10 @@ void Game::glutKeyboard(unsigned char c, int p1, int p2)
 	if (c == 'e')
 	{
 		exit(0);
-	}
+	}*/
 }
 
 void Game::glutMouse(int button, int state, int x, int y)
 {
-
+	m_scripting.MouseEvent(button, state, x, y);
 }
