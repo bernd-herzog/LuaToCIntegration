@@ -25,3 +25,4 @@ struct FunctionHolderClass{ \
 }; infoHolder<wapperName::cppCall, targetClass> wapperName::infoHolderInstance;
 
 #define GetWrapper(wapperName, func) (wapperName::getWrapperFunc<wapperName::cCall, wapperName::cppCall, wapperName>(this, func))
+#define GetWrapper2(wapperName, func, obj) (wapperName::getWrapperFunc<wapperName::cCall, wapperName::cppCall, wapperName>(obj, func))

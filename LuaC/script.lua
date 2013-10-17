@@ -4,20 +4,22 @@
 
 function InitializeLayout()
 	TextField = CreateTextField();
+	TextField:SetText("Hello World");
 	TextField:SetPosition(0.1, 0.1);
 	TextField:SetSize(0.4, 0.4);
 	TextField:Show();
-	--TextField:SetText("Hello World");
 	TextField:RegisterEvent(EVENT_TEXT_SUBMIT, OnEvent);
 
-	RegisterEvent(EVENT_GLOBAL_LOG, OnGlobalEvent);
 
 	Label = CreateLabel();
 	Label:SetPosition(0.1, 0.5);
 	Label:SetSize(0.4, 0.4);
 	Label:Show();
-	--Label:SetText("Hello World");
+	Label:SetText("Hello World");
 	--Label:RegisterEvent(EVENT_TEXT_SUBMIT, OnEvent);
+
+	RegisterEvent(EVENT_GLOBAL_LOG, OnGlobalEvent);
+
 end
 
 function OnEvent(source, event)

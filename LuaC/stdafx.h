@@ -23,3 +23,5 @@
 #include <GL/glut.h>
 #include <GL/freeglut.h>
 #include <lua.hpp>
+
+#define LUA_FUNCTION // markiert Funktionen die aus Lua aufgerufen werden zur besseren lesbarkeit des Codes

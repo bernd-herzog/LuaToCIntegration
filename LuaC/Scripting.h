@@ -35,12 +35,8 @@ private:
 	int lua_atPanicFunctuon(lua_State *L); 
 
 	//Called from LUA
-	int lua_CreateButton(lua_State *L);
-	int lua_CreateLabel(lua_State *L);
-	int lua_CreateTextField(lua_State *L);
-	int lua_CreateImage(lua_State *L);
-
 	int lua_SetGodMode(lua_State *L);
+	int lua_RegisterEvent(lua_State *L);
 
 	vector<UIElement *> m_uiElements;		
 
