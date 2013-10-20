@@ -8,9 +8,11 @@ public:
 	~UIImage(void);
 
 
-	static int lua_Index(lua_State *L);
+	static void Init(lua_State *L, std::function<void (UIElement *)> func);
 
 	virtual void Render();
+
+	int LUA_FUNCTION SetTexture(lua_State *L);
 
 };
 

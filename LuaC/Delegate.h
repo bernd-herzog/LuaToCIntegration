@@ -50,3 +50,47 @@ public:
 		}
 	}
 };
+
+#pragma once
+
+template <typename TSignature>
+class delegate;
+
+template<class ReturnType, class... Params>
+class delegate<ReturnType(Params...)>
+{
+public:
+	delegate()
+		: object_ptr(0)
+		, stub_ptr(0)
+	{}
+
+	template <class T, ReturnType(T::*TMethod)(Params...)>
+	static delegate from_method(T* object_ptr)
+	{
+		delegate d;
+		d.object_ptr = object_ptr;
+		d.stub_ptr = &method_stub<T, TMethod>; // #1
+		return d;
+	}
+
+	ReturnType operator()(Params... a1) const
+	{
+		return (*stub_ptr)(object_ptr, a1...);
+	}
+
+private:
+	typedef ReturnType(*stub_type)(void* object_ptr, Params...);
+
+	void* object_ptr;
+	stub_type stub_ptr;
+
+	template <class T, ReturnType(T::*TMethod)(Params...)>
+	static ReturnType method_stub(void* object_ptr, Params... a1)
+	{
+		T* p = static_cast<T*>(object_ptr);
+		return (p->*TMethod)(a1...); // #2
+	}
+};
+
+

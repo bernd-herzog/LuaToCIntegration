@@ -3,6 +3,7 @@
 #include <vector>
 #include "Delegate.h"
 #include "UIElement.h"
+#include "UITextField.h"
 
 using namespace std;
 
@@ -26,7 +27,11 @@ public:
 	void MouseEvent(int button, int state, int x, int y);
 	void KeyboardEvent(unsigned char c, int p1, int p2);
 
+	void SetUiSize(SIZE rect);
+
 private:
+	SIZE _uiSize;
+
 	lua_State *luaState;
 
 	const char *luaError;
@@ -39,6 +44,7 @@ private:
 	int lua_RegisterEvent(lua_State *L);
 
 	vector<UIElement *> m_uiElements;		
+	UITextField *m_focus;
 
 };
 

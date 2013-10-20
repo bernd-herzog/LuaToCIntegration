@@ -4,7 +4,7 @@
 
 
 MakeWrapper(DisplayWrapper, (), (), Game, void);
-MakeWrapper(ReshapeWrapper, (int w, int h), (w,h), Game, void);
+MakeWrapper(ReshapeWrapper, (int w, int h), (w, h), Game, void);
 MakeWrapper(KeyboardWrapper, (unsigned char c, int p1, int p2), (c, p1, p2), Game, void);
 MakeWrapper(MouseWrapper, (int button, int state, int x, int y), (button, state, x, y), Game, void);
 
@@ -39,7 +39,6 @@ void Game::Init()
 	glutMouseFunc(GetWrapper(MouseWrapper, &Game::glutMouse));
 
 
-	m_scripting.Init();
 	m_scripting.SetGodeModeEvent.attach<Game, &Game::Scripting_OnSetGodMode>(this);
 }
 
@@ -51,7 +50,6 @@ void Game::MainLoop()
 
 void Game::glutDisplay()
 {
-	m_scripting.RunScripts();
 
 	//init gl for 3d
 	glMatrixMode(GL_PROJECTION);
@@ -67,13 +65,13 @@ void Game::glutDisplay()
 
 	glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
 
-	glBegin(GL_TRIANGLES);
-	{
-		glVertex3f(0.0f, 0.0f, -2.0f);
-		glVertex3f(1.0f, 0.0f, -2.0f);
-		glVertex3f(0.0f, 1.0f, -2.0f);
-	}
-	glEnd();
+	//glBegin(GL_TRIANGLES);
+	//{
+	//	glVertex3f(0.0f, 0.0f, -2.0f);
+	//	glVertex3f(1.0f, 0.0f, -2.0f);
+	//	glVertex3f(0.0f, 1.0f, -2.0f);
+	//}
+	//glEnd();
 
 	//init gl for HUD
 	glMatrixMode(GL_PROJECTION);
@@ -99,12 +97,16 @@ void Game::glutReshape(int w, int h)
 	glGetFloatv(GL_PROJECTION_MATRIX, g_3dMatrix);
 	//hud matrix
 	glLoadIdentity();
-	glOrtho(0.0, w, 0.0, h, -1.0, 1.0);
+	glOrtho(0.0, w, h, 0.0, -1.0, 1.0); // {0,0} ist oben links
 
 	glGetFloatv(GL_PROJECTION_MATRIX, g_HudMatrix);
 
 	glMatrixMode(GL_MODELVIEW);
 
+
+	m_scripting.Init();
+	m_scripting.SetUiSize({ w, h });
+	m_scripting.RunScripts();
 }
 
 void Game::glutKeyboard(unsigned char c, int p1, int p2)
@@ -114,11 +116,11 @@ void Game::glutKeyboard(unsigned char c, int p1, int p2)
 	/*
 	if (c == 'f')
 	{
-		glutFullScreenToggle();
+	glutFullScreenToggle();
 	}
 	if (c == 'e')
 	{
-		exit(0);
+	exit(0);
 	}*/
 }
 

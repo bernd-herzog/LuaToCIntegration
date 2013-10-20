@@ -88,6 +88,10 @@ template<class nestedClassType>
 	luaL_getmetatable(L, className.c_str());
 	lua_setmetatable(L, -2);
 
+	lua_pushvalue(L, -1);
+	int refId = luaL_ref(L, LUA_REGISTRYINDEX);
+	button->SetRefID(refId);
+
 	callback(button);
 
 	return 1;
@@ -98,8 +102,9 @@ template <int (nestedClassType::*TMethod)(lua_State *L)>
 /*static*/ int LUA_FUNCTION LuaBinding<nestedClassType>::method_stub(lua_State *L) // selector
 {
 //	nestedClassType *obj = static_cast<nestedClassType *>(luaL_checkudata(L, -2, className.c_str())); 
-	nestedClassType *obj = static_cast<nestedClassType *>(lua_touserdata(L, -2)); 
-	return (obj->*TMethod)(L);
+	//int n = lua_gettop(L);
+	nestedClassType **obj = static_cast<nestedClassType **>(lua_touserdata(L, 1)); 
+	return (*obj->*TMethod)(L);
 }
 
 template<class nestedClassType>
