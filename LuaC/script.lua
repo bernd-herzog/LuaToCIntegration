@@ -16,7 +16,7 @@ textfeld autovervollständigung
 
 function InitializeLayout()
 	TextField = CreateTextField();
-	TextField:SetText("Hello World  TEST");
+	TextField:SetText("Dump(_G)");
 	TextField:SetPosition(10, -10);
 	TextField:SetAnchor("ANCHOR_BOTTOM_LEFT", "ANCHOR_BOTTOM_LEFT");
 	--TextField:SetAnchor("ANCHOR_TOP_LEFT", "ANCHOR_TOP_LEFT");
@@ -41,12 +41,13 @@ function InitializeLayout()
 	Label:SetPosition(0, -10);
 	Label:SetAnchor("ANCHOR_BOTTOM_LEFT", "ANCHOR_TOP_LEFT", TextField);
 	Label:Show();
-	Label:SetText("Hello World");
+	Label:SetText("");
 	--Label:RegisterEvent(EVENT_TEXT_SUBMIT, OnEvent);
 	
 	RegisterEvent("EVENT_GLOBAL_LOG", OnGlobalEvent);
 
 end
+
 
 function OnEvent(source, event)
 	--TextField:SetText(event);
@@ -56,10 +57,13 @@ function OnEvent(source, event)
 		if (f ~= nil) then
 			f();
 		else
-			Label:SetText(err);
+			--Label:SetText(err);
 		end
 	end
 end
+
+InitializeLayout();
+
 
 function OnGlobalEvent(event, arg1)
 	if (event == EVENT_GLOBAL_LOG) then
@@ -67,8 +71,24 @@ function OnGlobalEvent(event, arg1)
 	end
 end
 
-InitializeLayout();
+function Dump(t)
+	local str = "";
 
+	if (type(t) == "string") then
+		str = t
+	elseif (type(t) == "table") then
+		for k,v in pairs(t) do 
+		
+			str = str .. k .. "("..type(v).."):" .. tostring(v) .. "\n";
+		end
+	end
+	if (Label:GetText() == "") then
+		Label:SetText(Label:GetText() .. "Content: \n" .. str);
+	else
+		Label:SetText(Label:GetText() .. "\nContent: \n" .. str);
+	end
+
+end
 
 
 
@@ -77,5 +97,7 @@ Milestones:
 1. 24.10.
 2. 03.12.
 3. 16.01.
+
+z = "Hallo Welt"; Dump(z)
 
 ]]--

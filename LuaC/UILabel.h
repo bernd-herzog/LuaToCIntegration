@@ -15,6 +15,9 @@ public:
 
 	static void Init(lua_State *L, std::function<void (UIElement *)> func);
 
+	int m_scroll;
+	void Scroll(bool up);
+
 
 	virtual void Render();
 

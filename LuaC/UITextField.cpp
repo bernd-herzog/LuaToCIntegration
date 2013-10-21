@@ -104,3 +104,4 @@ void UITextField::SetText(std::string str)
 {
 	this->_str = str;
 }
+

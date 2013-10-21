@@ -24,7 +24,7 @@ public:
 
 	Event<Scripting, int> SetGodeModeEvent;
 
-	void MouseEvent(int button, int state, int x, int y);
+	bool MouseEvent(int button, int state, int x, int y);
 	void KeyboardEvent(unsigned char c, int p1, int p2);
 
 	void SetUiSize(SIZE rect);

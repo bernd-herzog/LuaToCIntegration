@@ -120,7 +120,7 @@ int Scripting::lua_SetGodMode(lua_State *L)
 	return 0;
 }
 
-void Scripting::MouseEvent(int button, int state, int x, int y)
+bool Scripting::MouseEvent(int button, int state, int x, int y)
 {
 	lua_atpanic(luaState, GetWrapper(LuaErrorWrapper, &Scripting::lua_atPanicFunctuon));
 
@@ -152,7 +152,7 @@ void Scripting::MouseEvent(int button, int state, int x, int y)
 						y > dim.y && y < dim.y + dim.height) // hit test
 					{
 						m_focus = textField;
-						return;
+						return true;
 					}
 				}
 
@@ -166,16 +166,16 @@ void Scripting::MouseEvent(int button, int state, int x, int y)
 						y > dim.y && y < dim.y + dim.height) // hit test
 					{
 						button->OnClick(luaState);
-						return;
+						return true;
 					}
 				}
 			}
 		}
-		else if (button == 3 || button == 4)
+		else if ((button == 3 || button == 4) && state == GLUT_UP)
 		{
 			for (auto feld : this->m_uiElements)
 			{
-				UITextField *textField = dynamic_cast<UITextField *>(feld);
+				UILabel *textField = dynamic_cast<UILabel *>(feld);
 
 				if (textField != nullptr)
 				{
@@ -184,13 +184,14 @@ void Scripting::MouseEvent(int button, int state, int x, int y)
 					if (x > dim.x && x < dim.x + dim.width &&
 						y > dim.y && y < dim.y + dim.height) // hit test
 					{
-						//textField->Scroll(button == 3);
-						return;
+						textField->Scroll(button == 3);
+						return true;
 					}
 				}
 			}
 		}
 	}
+	return false;
 }
 
 void Scripting::KeyboardEvent(unsigned char c, int p1, int p2)
@@ -205,6 +206,18 @@ void Scripting::KeyboardEvent(unsigned char c, int p1, int p2)
 			text = text.substr(0, text.length() - 1);
 
 			m_focus->SetText(text);
+		}
+		else if (c == 22) // strg + v
+		{
+			if (OpenClipboard(NULL)){
+				char *text = (char *)GetClipboardData(CF_TEXT);
+				CloseClipboard();
+				if (text != nullptr)
+				{
+					m_focus->SetText(m_focus->GetText().append(text));
+				}
+			}
+			
 		}
 		else
 		{

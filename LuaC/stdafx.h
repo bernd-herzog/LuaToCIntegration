@@ -19,8 +19,15 @@
 
 
 // TODO: Hier auf zusätzliche Header, die das Programm erfordert, verweisen.
+#define GL_GLEXT_PROTOTYPES
+
 #include <setjmp.h>
-#include <GL/glut.h>
+//#include "GLee.h"
+//#include <GL/gl.h>
+//#include <GL/glu.h>
+//#include <GL/glut.h>
+//#include <GL/wglext.h>
+#include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <lua.hpp>
 
