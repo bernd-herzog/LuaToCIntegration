@@ -1,5 +1,5 @@
 #pragma once
-
+#include "stdafx.h"
 #include "Scripting.h"
 
 class Game
@@ -19,6 +19,13 @@ public:
 	float m_angleY;
 
 private:
+	GLuint m_vertexShader;
+	GLuint m_fragmentShader;
+	GLuint m_shaderProgram;
+
+	bool CreateVertexShader(const char *source);
+	bool CreateFragmentShader(const char *source);
+
 
 	GLfloat g_3dMatrix[16];
 	GLfloat g_HudMatrix[16];
@@ -31,6 +38,8 @@ private:
 
 
 	Scripting m_scripting;
-	void Scripting_OnSetGodMode(Scripting*, EventArgs<int>);
+
+	void Scripting_OnInstallFragmentShader(Scripting*, EventArgs<char *>);
+	void Scripting_OnInstallVertexShader(Scripting*, EventArgs<char *>);
 };
 

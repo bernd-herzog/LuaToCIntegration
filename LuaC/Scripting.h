@@ -22,7 +22,8 @@ public:
 
 	void RenderHUD();
 
-	Event<Scripting, int> SetGodeModeEvent;
+	Event<Scripting, char *> InstallFragmentShader;
+	Event<Scripting, char *> InstallVertexShader;
 
 	bool MouseEvent(int button, int state, int x, int y);
 	void KeyboardEvent(unsigned char c, int p1, int p2);
@@ -37,11 +38,13 @@ private:
 	const char *luaError;
 	jmp_buf jumpBuffer;
 
-	int lua_atPanicFunctuon(lua_State *L); 
+	int LUA_FUNCTION lua_atPanicFunctuon(lua_State *L);
 
 	//Called from LUA
-	int lua_SetGodMode(lua_State *L);
-	int lua_RegisterEvent(lua_State *L);
+	int LUA_FUNCTION lua_RegisterEvent(lua_State *L);
+
+	int LUA_FUNCTION lua_InstallFragmentShader(lua_State *L);
+	int LUA_FUNCTION lua_InstallVertexShader(lua_State *L);
 
 	vector<UIElement *> m_uiElements;		
 	UITextField *m_focus;

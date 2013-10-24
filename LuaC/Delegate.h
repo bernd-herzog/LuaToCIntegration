@@ -51,8 +51,7 @@ public:
 	}
 };
 
-#pragma once
-
+/* benötigt Visual Studio 2013 und wird noch nicht benutzt
 template <typename TSignature>
 class delegate;
 
@@ -94,3 +93,4 @@ private:
 };
 
 
+*/

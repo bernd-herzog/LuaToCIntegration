@@ -10,13 +10,14 @@ TextOutput	// scrollbar, single/multiline, scroll on mouse
 
 Text Scrollen
 textfeld autovervollständigung
-
+script nachladen
+bei resize nicht neu laden
 
 ]]--
 
 function InitializeLayout()
 	TextField = CreateTextField();
-	TextField:SetText("Dump(_G)");
+	TextField:SetText("InstallAnotherShader()");
 	TextField:SetPosition(10, -10);
 	TextField:SetAnchor("ANCHOR_BOTTOM_LEFT", "ANCHOR_BOTTOM_LEFT");
 	--TextField:SetAnchor("ANCHOR_TOP_LEFT", "ANCHOR_TOP_LEFT");
@@ -90,6 +91,9 @@ function Dump(t)
 
 end
 
+function InstallAnotherShader()
+	InstallFragmentShader("#version 120\nvoid main(void){gl_FragColor = vec4(1.0, 1.0, gl_FragCoord.z, 1.0);}");
+end
 
 
 --[[

@@ -11,8 +11,10 @@
 #include <functional>
 
 MakeWrapper(LuaErrorWrapper, (lua_State *L), (L), Scripting, int);
-MakeWrapper(LuaFunctionSetGodMode, (lua_State *L), (L), Scripting, int);
 MakeWrapper(LuaFunction_RegisterEvent, (lua_State *L), (L), Scripting, int);
+
+MakeWrapper(LuaFunctionInstallVertexShader, (lua_State *L), (L), Scripting, int);
+MakeWrapper(LuaFunctionInstallFragmentShader, (lua_State *L), (L), Scripting, int);
 
 Scripting::Scripting(void)
 :_uiSize({ 0, 0 })
@@ -39,11 +41,14 @@ void Scripting::Init(void)
 	luaState = luaL_newstate();
 	luaL_openlibs(luaState);
 
-	lua_pushcfunction(luaState, GetWrapper(LuaFunctionSetGodMode, &Scripting::lua_SetGodMode));
-	lua_setglobal(luaState, "SetGodMode");
-
 	lua_pushcfunction(luaState, GetWrapper(LuaFunction_RegisterEvent, &Scripting::lua_RegisterEvent));
 	lua_setglobal(luaState, "RegisterEvent");
+
+	lua_pushcfunction(luaState, GetWrapper(LuaFunctionInstallFragmentShader, &Scripting::lua_InstallFragmentShader));
+	lua_setglobal(luaState, "InstallFragmentShader");
+	lua_pushcfunction(luaState, GetWrapper(LuaFunctionInstallVertexShader, &Scripting::lua_InstallVertexShader));
+	lua_setglobal(luaState, "InstallVertexShader");
+
 
 	std::function<void(UIElement *)> func = [this](UIElement *field){
 		field->SetParentDimensions({ 0, 0 }, { this->_uiSize.cx, this->_uiSize.cy });
@@ -112,13 +117,20 @@ void Scripting::RenderHUD()
 	}
 }
 
-
-int Scripting::lua_SetGodMode(lua_State *L)
+int LUA_FUNCTION Scripting::lua_InstallFragmentShader(lua_State *L)
 {
-	this->SetGodeModeEvent.OnEvent(this, EventArgs<int>(0));
-
+	char *source = const_cast<char *>(luaL_checkstring(L, 1));
+	InstallFragmentShader.OnEvent(this, EventArgs<char *>(source));
 	return 0;
 }
+
+int LUA_FUNCTION Scripting::lua_InstallVertexShader(lua_State *L)
+{
+	char *source = const_cast<char *>(luaL_checkstring(L, 1));
+	InstallVertexShader.OnEvent(this, EventArgs<char *>(source));
+	return 0;
+}
+
 
 bool Scripting::MouseEvent(int button, int state, int x, int y)
 {
@@ -128,11 +140,6 @@ bool Scripting::MouseEvent(int button, int state, int x, int y)
 
 	if (r == 0)
 	{
-
-
-
-
-
 		// wenn hier in TextField ist Focus setzen
 		// wenn hier ein button ist Click event senden
 		// sonst focus löschen

@@ -11,6 +11,7 @@ MakeWrapper(MotionWrapper, (int x, int y), (x, y), Game, void);
 
 
 Game::Game(void)
+:m_vertexShader(-1), m_fragmentShader(-1)
 {
 }
 
@@ -20,10 +21,16 @@ Game::~Game(void)
 {
 }
 
-void Game::Scripting_OnSetGodMode(Scripting*, EventArgs<int> args)
+void Game::Scripting_OnInstallFragmentShader(Scripting*, EventArgs<char *> args)
 {
-	MessageBoxEx(0, L"", L"TEST", 0, 0);
+	this->CreateFragmentShader(args.arg1);
 }
+
+void Game::Scripting_OnInstallVertexShader(Scripting*, EventArgs<char *> args)
+{
+	this->CreateVertexShader(args.arg1);
+}
+
 
 void Game::Init()
 {
@@ -41,88 +48,147 @@ void Game::Init()
 	const char *venstr = (const char*)glGetString(GL_VENDOR);
 	const char *verstr = (const char*)glGetString(GL_VERSION);
 
-	bool is2 = GLEW_VERSION_2_0;
-	if (GLEW_OK != err || !is2)
-	{
-		/* Problem: glewInit failed, something is seriously wrong. */
-		//		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-
-		const char *errstr = (const char*)glewGetErrorString(err);
-		return;
-	}
-
-
 	glutDisplayFunc(GetWrapper(DisplayWrapper, &Game::glutDisplay));
 	glutReshapeFunc(GetWrapper(ReshapeWrapper, &Game::glutReshape));
 	glutKeyboardFunc(GetWrapper(KeyboardWrapper, &Game::glutKeyboard));
 	glutMouseFunc(GetWrapper(MouseWrapper, &Game::glutMouse));
 	glutMotionFunc(GetWrapper(MotionWrapper, &Game::glutMotion));
 
-	
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	const GLchar *vertexSource =
+		"#version 120\n"
+		"varying vec3 normal;\n"
+		"varying vec4 pos;\n"
+		"void main(void) {\n"
+		"	normal = gl_Normal;\n"
+		"	pos = gl_Vertex;\n"
+		"	gl_FrontColor = gl_Color; gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
+		"}";
 
+	const GLchar *fragmentSource =
+		"#version 120\n"
+		"varying vec3 normal;\n"
+		"varying vec4 pos;\n"
+		"void main(void){\n"
+		"	float iDiff = max(0.0f, dot (normalize (normal), normalize(vec3(gl_LightSource[0].position - pos))));"
+		"	"
+		"	gl_FragColor = gl_Color * iDiff;\n"
+		"}";
+
+	this->m_shaderProgram = glCreateProgram();
+
+	this->CreateVertexShader(vertexSource);
+	assert(glGetError() == GL_NO_ERROR);
+	this->CreateFragmentShader(fragmentSource);
 	assert(glGetError() == GL_NO_ERROR);
 
-	const GLchar *fragmentSource = "void main(void){gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);}";
-	const GLchar *vertexSource = "void main(void){gl_Position = ftransform();}";
+	m_scripting.InstallFragmentShader.attach<Game, &Game::Scripting_OnInstallFragmentShader>(this);
+	m_scripting.InstallVertexShader.attach<Game, &Game::Scripting_OnInstallVertexShader>(this);
 
-	glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
-	glShaderSource(vertexShader, 1, &vertexSource, NULL);
-	assert(glGetError() == GL_NO_ERROR);
+}
 
-	glCompileShader(fragmentShader);
-	glCompileShader(vertexShader);
-	assert(glGetError() == GL_NO_ERROR);
+bool Game::CreateVertexShader(const char *source)
+{
+	GLint shader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(shader, 1, &source, NULL);
+
+	glCompileShader(shader);
 
 	GLint status;
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &status);
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 
 	if (status == GL_FALSE){
-		return;
+		GLint maxLength = 0;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
+
+		//The maxLength includes the NULL character
+		std::vector<char> errorLog(maxLength);
+		glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
+		char *i = (char *)&errorLog[0];
+		//Provide the infolog in whatever manor you deem best.
+		//Exit with failure.
+		glDeleteShader(shader); //Don't leak the shader.
+		return false;
 	}
 
-	GLuint programm = glCreateProgram();
-	assert(glGetError() == GL_NO_ERROR);
+	if (m_vertexShader != -1)
+	{
+		glDetachShader(this->m_shaderProgram, this->m_vertexShader);
+		glDeleteShader(this->m_vertexShader);
+	}
 
-	glAttachShader(programm, fragmentShader);
-	glAttachShader(programm, vertexShader);
-	assert(glGetError() == GL_NO_ERROR);
 
-	glLinkProgram(programm);
-	assert(glGetError() == GL_NO_ERROR);
+	m_vertexShader = shader;
 
-	//glValidateProgram(programm);
+	glAttachShader(this->m_shaderProgram, this->m_vertexShader);
+	glLinkProgram(this->m_shaderProgram);
 
-	//GLint status;
-	glGetProgramiv(programm, GL_LINK_STATUS, &status);
+	glGetProgramiv(this->m_shaderProgram, GL_LINK_STATUS, &status);
 	if (status == GL_FALSE) {
-		int loglen;
-		char logbuffer[1000];
-		glGetProgramInfoLog(programm, sizeof(logbuffer), &loglen, logbuffer);
-		return;
-	}
-	//glGetProgram()
+		GLint maxLength = 0;
+		glGetProgramiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
 
-	glUseProgram(programm);
-//	assert(glGetError() == GL_NO_ERROR);
-	
-	err = glGetError();
 
-	const char *errstr = (const char*)gluErrorString(err);
+		std::vector<char> errorLog(maxLength);
+		glGetProgramInfoLog(this->m_shaderProgram, maxLength, &maxLength, &errorLog[0]);
+		char *i = (char *)&errorLog[0];
 
-	//const char *errstr = (const char*)glewGetErrorString(err);
-
-	if (err == GL_INVALID_OPERATION){
-		return;
+		return false;
 	}
 
-
-	//assert(glGetError() == GL_NO_ERROR);
-	
-
-	m_scripting.SetGodeModeEvent.attach<Game, &Game::Scripting_OnSetGodMode>(this);
+	return true;
 }
+
+bool Game::CreateFragmentShader(const char *source)
+{
+	GLint shader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(shader, 1, &source, NULL);
+
+	glCompileShader(shader);
+
+	GLint status;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+
+	if (status == GL_FALSE){
+		GLint maxLength = 0;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
+
+		//The maxLength includes the NULL character
+		std::vector<char> errorLog(maxLength);
+		glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
+		char *i = (char *)&errorLog[0];
+		//Provide the infolog in whatever manor you deem best.
+		//Exit with failure.
+		glDeleteShader(shader); //Don't leak the shader.
+		return false;
+	}
+
+	if (m_fragmentShader != -1)
+	{
+		glDetachShader(this->m_shaderProgram, this->m_fragmentShader);
+		glDeleteShader(this->m_fragmentShader);
+	}
+
+
+	m_fragmentShader = shader;
+
+	glAttachShader(this->m_shaderProgram, this->m_fragmentShader);
+	glLinkProgram(this->m_shaderProgram);
+
+	glGetProgramiv(this->m_shaderProgram, GL_LINK_STATUS, &status);
+	if (status == GL_FALSE) {
+		GLint maxLength = 0;
+		glGetProgramiv(this->m_shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
+
+		std::vector<char> errorLog(maxLength);
+		glGetProgramInfoLog(this->m_shaderProgram, maxLength, &maxLength, &errorLog[0]);
+		char *i = (char *)&errorLog[0];
+
+		return false;
+	}
+
+	return true;
+}
+
 
 void Game::MainLoop()
 {
@@ -153,8 +219,10 @@ void Game::glutDisplay()
 
 	glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
 
-//	glEnable(GL_LIGHTING);
-//	glEnable(GL_LIGHT0);
+	glUseProgram(this->m_shaderProgram);
+
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
 
 	//light
 	GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
@@ -163,22 +231,18 @@ void Game::glutDisplay()
 	GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
 	GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
 
-	//glCreateShader(GL_VERTEX_SHADER);
-
-
-
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glLightfv(GL_FRONT, GL_SPECULAR, light_specular);
 	glLightfv(GL_FRONT, GL_DIFFUSE, light_diffuse);
 	glLightfv(GL_FRONT, GL_AMBIENT, light_ambient);
 
 	//material
-	GLfloat mat_ambient[] = { 0.2, 0.2, 0.2, 1.0 };
-	GLfloat mat_diffuse[] = { 0.8, 0.8, 0.8, 1.0 };
-	
-	GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat mat_shininess[] = { 50.0 };
-	
+	GLfloat mat_ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+	GLfloat mat_diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+
+	GLfloat mat_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat mat_shininess[] = { 50.0f };
+
 	GLfloat mat_emmision[] = { 0.0, 0.0, 0.0, 1.0 };
 
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
@@ -196,8 +260,9 @@ void Game::glutDisplay()
 
 	glDisable(GL_LIGHT0);
 	glDisable(GL_LIGHTING);
-	
 
+
+	glUseProgram(0);
 
 
 	//glBegin(GL_TRIANGLES);
