@@ -11,7 +11,7 @@ MakeWrapper(MotionWrapper, (int x, int y), (x, y), Game, void);
 
 
 Game::Game(void)
-:m_vertexShader(-1), m_fragmentShader(-1)
+	:m_vertexShader(-1), m_fragmentShader(-1), m_angleX(0.0f), m_angleY(0.0f)
 {
 }
 
@@ -59,8 +59,8 @@ void Game::Init()
 		"varying vec3 normal;\n"
 		"varying vec4 pos;\n"
 		"void main(void) {\n"
-		"	normal = gl_Normal;\n"
-		"	pos = gl_Vertex;\n"
+		"	normal = gl_NormalMatrix * gl_Normal;\n"
+		"	pos = gl_ModelViewMatrix * gl_Vertex;\n"
 		"	gl_FrontColor = gl_Color; gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
 		"}";
 
@@ -69,9 +69,13 @@ void Game::Init()
 		"varying vec3 normal;\n"
 		"varying vec4 pos;\n"
 		"void main(void){\n"
-		"	float iDiff = max(0.0f, dot (normalize (normal), normalize(vec3(gl_LightSource[0].position - pos))));"
-		"	"
-		"	gl_FragColor = gl_Color * iDiff;\n"
+		"	vec3 l_norm = normalize(vec3((gl_LightSource[0].position) - pos));\n" 
+		"	vec3 n_norm = normalize (normal);\n"
+		"	float dot_n_l = dot (n_norm, l_norm);\n"
+		"	float iDiff = max(0.0f, dot_n_l);\n"
+		"	vec3 c_norm = normalize(-vec3(pos));\n"
+		"	float iSpec = max(0.0f, pow(dot(2 * dot_n_l * n_norm - l_norm, c_norm), gl_FrontMaterial.shininess));\n"
+		"	gl_FragColor = gl_Color * (iDiff * gl_FrontMaterial.diffuse * gl_LightSource[0].diffuse + iSpec * gl_FrontMaterial.specular * gl_LightSource[0].specular + gl_FrontMaterial.ambient * gl_LightSource[0].ambient);\n"
 		"}";
 
 	this->m_shaderProgram = glCreateProgram();
@@ -314,7 +318,10 @@ void Game::glutReshape(int w, int h)
 
 
 	m_scripting.Init();
-	m_scripting.SetUiSize({ w, h });
+	SIZE s;
+	s.cx = w;
+	s.cy = h;
+	m_scripting.SetUiSize(s);
 	m_scripting.RunScripts();
 }
 
@@ -354,6 +361,12 @@ void Game::glutMotion(int x, int y)
 
 			m_angleX += (float)dx / 360 * 3.1415f;
 			m_angleY -= (float)dy / 360 * 3.1415f;
+
+			if (m_angleY > 3.1415f/2)
+				m_angleY = 3.1415f/2;
+			if (m_angleY < -3.1415f/2)
+				m_angleY = -3.1415f/2;
+
 		}
 		m_oldX = x;
 		m_oldY = y;

@@ -19,7 +19,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v110</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -41,8 +41,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\j39f3fs\Documents\clibs\glew-1.10.0\include;C:\Program Files %28x86%29\Lua\5.1\include;C:\Users\j39f3fs\Documents\Visual Studio 2012\Projects\LuaC\freeglut\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files %28x86%29\Lua\5.1\lib;C:\Users\j39f3fs\Documents\Visual Studio 2012\Projects\LuaC\freeglut\lib;C:\Users\j39f3fs\Documents\clibs\glew-1.10.0\lib\Release\Win32;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\glew-1.10.0\include;..\Lua-5.1\include;..\freeglut\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\Lua-5.1\lib;..\freeglut\lib;..\glew-1.10.0\lib\Release\Win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -58,10 +58,20 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lua51.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lua5.1.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Link>
+    <CustomBuildStep>
+      <Command>
+      </Command>
+    </CustomBuildStep>
+    <PostBuildEvent>
+      <Command>copy ..\glew-1.10.0\bin\Release\Win32\glew32.dll ..\Debug\
+copy ..\freeglut\bin\freeglut.dll ..\Debug\
+copy ..\lua-5.1\lib\lua5.1.dll ..\Debug\
+</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

@@ -17,7 +17,7 @@ MakeWrapper(LuaFunctionInstallVertexShader, (lua_State *L), (L), Scripting, int)
 MakeWrapper(LuaFunctionInstallFragmentShader, (lua_State *L), (L), Scripting, int);
 
 Scripting::Scripting(void)
-:_uiSize({ 0, 0 })
+:_uiSize()
 {
 }
 
@@ -51,7 +51,7 @@ void Scripting::Init(void)
 
 
 	std::function<void(UIElement *)> func = [this](UIElement *field){
-		field->SetParentDimensions({ 0, 0 }, { this->_uiSize.cx, this->_uiSize.cy });
+		field->SetParentDimensions(POINT(), this->_uiSize);
 		m_uiElements.push_back(field);
 	};
 
