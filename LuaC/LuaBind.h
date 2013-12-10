@@ -62,7 +62,7 @@ template<class nestedClassType>
 /* static */ void LuaBinding<nestedClassType>::InitOnce(std::string className, std::function<void (nestedClassType *)> callback) // should be called only once
 {
 	LuaBinding<nestedClassType>::className = className;
-	LuaBinding<nestedClassType>::callback = callback;
+	LuaBinding<nestedClassType>::callback = callback; //TODO: für jeden lua context über closure übergeben
 }
 
 template<class nestedClassType>

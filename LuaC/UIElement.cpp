@@ -9,7 +9,7 @@
 
 
 UIElement::UIElement(void)
-:_visible(false), m_luaEventHandlerId(-1)
+	:_visible(false), m_luaEventHandlerId(-1), m_anchorOtherElement(nullptr)
 {
 }
 
@@ -175,22 +175,22 @@ Dimension UIElement::GetAbsoluteDimensions()
 	ret.x += this->_dimOther.x;
 	ret.y += this->_dimOther.y;
 
-	if (this->_anchorSelf == AnchorPosition::TOP_RIGHT || this->_anchorSelf == AnchorPosition::BOTTOM_RIGHT)
+	if (this->_anchorSelf == AnchorPosition::BOTTOM_RIGHT || this->_anchorSelf == AnchorPosition::TOP_RIGHT)
 	{
 		ret.x -= ret.width;
 	}
 
-	if (this->_anchorSelf == AnchorPosition::BOTTOM_LEFT || this->_anchorSelf == AnchorPosition::BOTTOM_RIGHT)
+	if (this->_anchorSelf == AnchorPosition::TOP_LEFT || this->_anchorSelf == AnchorPosition::TOP_RIGHT)
 	{
 		ret.y -= ret.height;
 	}
 
-	if (this->_anchorOther == AnchorPosition::TOP_RIGHT || this->_anchorOther == AnchorPosition::BOTTOM_RIGHT)
+	if (this->_anchorOther == AnchorPosition::BOTTOM_RIGHT || this->_anchorOther == AnchorPosition::TOP_RIGHT)
 	{
 		ret.x += this->_dimOther.width;
 	}
 
-	if (this->_anchorOther == AnchorPosition::BOTTOM_LEFT || this->_anchorOther == AnchorPosition::BOTTOM_RIGHT)
+	if (this->_anchorOther == AnchorPosition::TOP_LEFT || this->_anchorOther == AnchorPosition::TOP_RIGHT)
 	{
 		ret.y += this->_dimOther.height;
 	}

@@ -13,6 +13,7 @@ void UIButton::Init(lua_State *L, std::function<void (UIElement *)> func)
 
 		once = true;
 		LuaBinding::registerFunc<&UIButton::SetText>("SetText");
+		LuaBinding::registerFunc<&UIButton::GetText>("GetText");
 	}
 
 	LuaBinding::Init(L, "CreateButton");
@@ -48,7 +49,7 @@ UIButton::~UIButton(void)
 
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
-		//stencil
+		//stencil;
 		glClear(GL_STENCIL_BUFFER_BIT);
 		glEnable(GL_STENCIL_TEST);
 		glStencilFunc(GL_ALWAYS, 1, 1);
@@ -71,11 +72,36 @@ UIButton::~UIButton(void)
 
 		//text
 
-		int textWidth = _str.length() * 8;
-		int textHeight = 13;
+		int textWidth = 0;
+		int lines = 1;
 
-		glRasterPos2i(dim.x + dim.width / 2 - textWidth / 2, dim.y + dim.height / 2 - textHeight / 2 + 13 - 3); // -3 ist ungeklärt
-		glutBitmapString(GLUT_BITMAP_8_BY_13, (const unsigned char *)_str.c_str());
+		int i = 0;
+		for(auto c : m_str) // sollte vllt nur einmal gemacht werden und nicht jeden frame
+		{
+			if (c == '\n')
+			{
+				lines++;
+				if (i > textWidth)
+					textWidth = i;
+				i = 0;
+			}
+			else
+			{
+				i++;
+			}
+		}
+
+		if (i > textWidth)
+			textWidth = i;
+		
+		textWidth*=8;
+
+		int textHeight = lines * 13;
+
+		glRasterPos2i(
+			dim.x + dim.width / 2 - textWidth / 2, 
+			dim.y + dim.height / 2 + textHeight / 2 - 10);
+		glutBitmapString(GLUT_BITMAP_8_BY_13, (const unsigned char *)m_str.c_str());
 
 		//end
 		glDisable(GL_STENCIL_TEST);
@@ -84,10 +110,17 @@ UIButton::~UIButton(void)
 
 int LUA_FUNCTION UIButton::SetText(lua_State *L)
 {
-	_str = luaL_checkstring(L, 2);
+	m_str = luaL_checkstring(L, 2);
 
 	return 0;
 }
+
+int LUA_FUNCTION UIButton::GetText(lua_State *L)
+{
+	lua_pushstring(L, this->m_str.c_str());
+	return 1;
+}
+
 
 void UIButton::OnClick(lua_State *L)
 {

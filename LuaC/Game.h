@@ -33,8 +33,12 @@ private:
 	void glutDisplay();
 	void glutReshape(int w, int h);
 	void glutKeyboard(unsigned char c, int p1, int p2);
+	void glutSpecial(int c, int p1, int p2);
 	void glutMouse(int button, int state, int x, int y);
 	void glutMotion(int x, int y);
+
+	int m_windowHeight;
+	int m_windowWidth;
 
 
 	Scripting m_scripting;

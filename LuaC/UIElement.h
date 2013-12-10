@@ -33,10 +33,13 @@ public:
 	UIElement(void);
 	~UIElement(void);
 
+	bool IsVisible(){return this->_visible;}
+
 	void SetRefID(int);
 	void SetParentDimensions(POINT position, SIZE size);
 	Dimension GetAbsoluteDimensions();
 
+	UIElement *GetParent(){return this->m_anchorOtherElement;}
 
 	//static int lua_Index(lua_State *L);
 

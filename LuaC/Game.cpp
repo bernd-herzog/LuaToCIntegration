@@ -6,12 +6,13 @@
 MakeWrapper(DisplayWrapper, (), (), Game, void);
 MakeWrapper(ReshapeWrapper, (int w, int h), (w, h), Game, void);
 MakeWrapper(KeyboardWrapper, (unsigned char c, int p1, int p2), (c, p1, p2), Game, void);
+MakeWrapper(SpecialWrapper, (int c, int p1, int p2), (c, p1, p2), Game, void);
 MakeWrapper(MouseWrapper, (int button, int state, int x, int y), (button, state, x, y), Game, void);
 MakeWrapper(MotionWrapper, (int x, int y), (x, y), Game, void);
 
 
 Game::Game(void)
-	:m_vertexShader(-1), m_fragmentShader(-1), m_angleX(0.0f), m_angleY(0.0f)
+	:m_vertexShader(-1), m_fragmentShader(-1), m_angleX(0.0f), m_angleY(0.0f), m_oldX(0.0f), m_oldY(0.0f)
 {
 }
 
@@ -51,6 +52,7 @@ void Game::Init()
 	glutDisplayFunc(GetWrapper(DisplayWrapper, &Game::glutDisplay));
 	glutReshapeFunc(GetWrapper(ReshapeWrapper, &Game::glutReshape));
 	glutKeyboardFunc(GetWrapper(KeyboardWrapper, &Game::glutKeyboard));
+	glutSpecialFunc(GetWrapper(SpecialWrapper, &Game::glutSpecial));
 	glutMouseFunc(GetWrapper(MouseWrapper, &Game::glutMouse));
 	glutMotionFunc(GetWrapper(MotionWrapper, &Game::glutMotion));
 
@@ -75,7 +77,7 @@ void Game::Init()
 		"	float iDiff = max(0.0f, dot_n_l);\n"
 		"	vec3 c_norm = normalize(-vec3(pos));\n"
 		"	float iSpec = max(0.0f, pow(dot(2 * dot_n_l * n_norm - l_norm, c_norm), gl_FrontMaterial.shininess));\n"
-		"	gl_FragColor = gl_Color * (iDiff * gl_FrontMaterial.diffuse * gl_LightSource[0].diffuse + iSpec * gl_FrontMaterial.specular * gl_LightSource[0].specular + gl_FrontMaterial.ambient * gl_LightSource[0].ambient);\n"
+		"	gl_FragColor = gl_FrontMaterial.emission + gl_Color * (iDiff * gl_FrontMaterial.diffuse * gl_LightSource[0].diffuse + iSpec * gl_FrontMaterial.specular * gl_LightSource[0].specular + gl_FrontMaterial.ambient * gl_LightSource[0].ambient);\n"
 		"}";
 
 	this->m_shaderProgram = glCreateProgram();
@@ -88,6 +90,8 @@ void Game::Init()
 	m_scripting.InstallFragmentShader.attach<Game, &Game::Scripting_OnInstallFragmentShader>(this);
 	m_scripting.InstallVertexShader.attach<Game, &Game::Scripting_OnInstallVertexShader>(this);
 
+	m_scripting.Init();
+	m_scripting.RunScripts();
 }
 
 bool Game::CreateVertexShader(const char *source)
@@ -107,7 +111,7 @@ bool Game::CreateVertexShader(const char *source)
 		//The maxLength includes the NULL character
 		std::vector<char> errorLog(maxLength);
 		glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
-		char *i = (char *)&errorLog[0];
+		this->m_scripting.PostLogEvent((char *)&errorLog[0]);
 		//Provide the infolog in whatever manor you deem best.
 		//Exit with failure.
 		glDeleteShader(shader); //Don't leak the shader.
@@ -134,7 +138,7 @@ bool Game::CreateVertexShader(const char *source)
 
 		std::vector<char> errorLog(maxLength);
 		glGetProgramInfoLog(this->m_shaderProgram, maxLength, &maxLength, &errorLog[0]);
-		char *i = (char *)&errorLog[0];
+		this->m_scripting.PostLogEvent((char *)&errorLog[0]);
 
 		return false;
 	}
@@ -159,7 +163,7 @@ bool Game::CreateFragmentShader(const char *source)
 		//The maxLength includes the NULL character
 		std::vector<char> errorLog(maxLength);
 		glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
-		char *i = (char *)&errorLog[0];
+		this->m_scripting.PostLogEvent((char *)&errorLog[0]);
 		//Provide the infolog in whatever manor you deem best.
 		//Exit with failure.
 		glDeleteShader(shader); //Don't leak the shader.
@@ -185,7 +189,7 @@ bool Game::CreateFragmentShader(const char *source)
 
 		std::vector<char> errorLog(maxLength);
 		glGetProgramInfoLog(this->m_shaderProgram, maxLength, &maxLength, &errorLog[0]);
-		char *i = (char *)&errorLog[0];
+		this->m_scripting.PostLogEvent((char *)&errorLog[0]);
 
 		return false;
 	}
@@ -300,6 +304,9 @@ void Game::glutDisplay()
 
 void Game::glutReshape(int w, int h)
 {
+	this->m_windowHeight = h;
+	this->m_windowWidth = w;
+
 	glViewport(0, 0, w, h);
 
 	glMatrixMode(GL_PROJECTION);
@@ -310,19 +317,17 @@ void Game::glutReshape(int w, int h)
 	glGetFloatv(GL_PROJECTION_MATRIX, g_3dMatrix);
 	//hud matrix
 	glLoadIdentity();
-	glOrtho(0.0, w, h, 0.0, -1.0, 1.0); // {0,0} ist oben links
+	glOrtho(0.0, w, 0.0, h, -1.0, 1.0); // {0,0} ist unten links
 
 	glGetFloatv(GL_PROJECTION_MATRIX, g_HudMatrix);
 
 	glMatrixMode(GL_MODELVIEW);
 
 
-	m_scripting.Init();
 	SIZE s;
 	s.cx = w;
 	s.cy = h;
 	m_scripting.SetUiSize(s);
-	m_scripting.RunScripts();
 }
 
 void Game::glutKeyboard(unsigned char c, int p1, int p2)
@@ -340,9 +345,15 @@ void Game::glutKeyboard(unsigned char c, int p1, int p2)
 	}*/
 }
 
+void Game::glutSpecial(int c, int p1, int p2)
+{
+	m_scripting.SpecialEvent(c, p1, p2);
+}
+
+
 void Game::glutMouse(int button, int state, int x, int y)
 {
-	bool handled = m_scripting.MouseEvent(button, state, x, y);
+	bool handled = m_scripting.MouseEvent(button, state, x, this->m_windowHeight - y);
 
 	if (!handled || button == GLUT_UP)
 	{

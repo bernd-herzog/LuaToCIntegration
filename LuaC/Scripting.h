@@ -27,8 +27,15 @@ public:
 
 	bool MouseEvent(int button, int state, int x, int y);
 	void KeyboardEvent(unsigned char c, int p1, int p2);
+	void SpecialEvent(int c, int p1, int p2);
 
 	void SetUiSize(SIZE rect);
+
+	void PostLogEvent(char *);
+
+	int m_luaEventHandlerId;
+	std::set<std::string> m_registeredEvents;
+
 
 private:
 	SIZE _uiSize;
@@ -42,6 +49,7 @@ private:
 
 	//Called from LUA
 	int LUA_FUNCTION lua_RegisterEvent(lua_State *L);
+	int LUA_FUNCTION lua_SetEventHandler(lua_State *L);
 
 	int LUA_FUNCTION lua_InstallFragmentShader(lua_State *L);
 	int LUA_FUNCTION lua_InstallVertexShader(lua_State *L);

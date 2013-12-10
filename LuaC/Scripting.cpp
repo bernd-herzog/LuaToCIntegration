@@ -12,12 +12,13 @@
 
 MakeWrapper(LuaErrorWrapper, (lua_State *L), (L), Scripting, int);
 MakeWrapper(LuaFunction_RegisterEvent, (lua_State *L), (L), Scripting, int);
+MakeWrapper(LuaFunction_RegisterEventHandler, (lua_State *L), (L), Scripting, int);
 
 MakeWrapper(LuaFunctionInstallVertexShader, (lua_State *L), (L), Scripting, int);
 MakeWrapper(LuaFunctionInstallFragmentShader, (lua_State *L), (L), Scripting, int);
 
 Scripting::Scripting(void)
-:_uiSize()
+	:_uiSize()
 {
 }
 
@@ -30,6 +31,14 @@ Scripting::~Scripting(void)
 void Scripting::SetUiSize(SIZE size)
 {
 	this->_uiSize = size;
+
+	for (auto el : m_uiElements)
+	{
+		if (el->GetParent() == nullptr)
+		{
+			el->SetParentDimensions(POINT(), size);
+		}
+	}
 }
 
 
@@ -43,6 +52,8 @@ void Scripting::Init(void)
 
 	lua_pushcfunction(luaState, GetWrapper(LuaFunction_RegisterEvent, &Scripting::lua_RegisterEvent));
 	lua_setglobal(luaState, "RegisterEvent");
+	lua_pushcfunction(luaState, GetWrapper(LuaFunction_RegisterEventHandler, &Scripting::lua_SetEventHandler));
+	lua_setglobal(luaState, "SetEventHandler");
 
 	lua_pushcfunction(luaState, GetWrapper(LuaFunctionInstallFragmentShader, &Scripting::lua_InstallFragmentShader));
 	lua_setglobal(luaState, "InstallFragmentShader");
@@ -140,11 +151,16 @@ bool Scripting::MouseEvent(int button, int state, int x, int y)
 
 	if (r == 0)
 	{
-		// wenn hier in TextField ist Focus setzen
-		// wenn hier ein button ist Click event senden
-		// sonst focus löschen
+		// wenn hier in TextField ist -> Focus setzen
+		// wenn hier ein button ist -> Click event senden
+		// sonst -> focus löschen
 		if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
 		{
+			if (m_focus != nullptr)
+			{
+				m_focus->SetHasFocus(false);
+			}
+
 			m_focus = nullptr;
 
 			for (auto feld : this->m_uiElements)
@@ -155,17 +171,22 @@ bool Scripting::MouseEvent(int button, int state, int x, int y)
 				{
 					Dimension dim = textField->GetAbsoluteDimensions();
 
-					if (x > dim.x && x < dim.x + dim.width &&
+					if (textField->IsVisible() &&
+						x > dim.x && x < dim.x + dim.width &&
 						y > dim.y && y < dim.y + dim.height) // hit test
 					{
 						m_focus = textField;
+						m_focus->SetHasFocus(true);
+						m_focus->SetCursorByCoordiantes(x, y);
+
+
 						return true;
 					}
 				}
 
 				UIButton *button = dynamic_cast<UIButton *>(feld);
 
-				if (button != nullptr)
+				if (button != nullptr && button->IsVisible())
 				{
 					Dimension dim = button->GetAbsoluteDimensions();
 
@@ -184,7 +205,7 @@ bool Scripting::MouseEvent(int button, int state, int x, int y)
 			{
 				UILabel *textField = dynamic_cast<UILabel *>(feld);
 
-				if (textField != nullptr)
+				if (textField != nullptr && textField->IsVisible())
 				{
 					Dimension dim = textField->GetAbsoluteDimensions();
 
@@ -206,43 +227,64 @@ void Scripting::KeyboardEvent(unsigned char c, int p1, int p2)
 	// wenn TextField focus hat ihm die taste senden
 	if (this->m_focus != nullptr)
 	{
-		if (c == 8) // backspace
+		this->m_focus->SendKey(luaState, c);
+	}
+}
+
+void Scripting::SpecialEvent(int c, int p1, int p2)
+{
+	if (m_focus != nullptr)
+	{
+		if (c == GLUT_KEY_LEFT) // left
 		{
-			std::string text = m_focus->GetText();
-
-			text = text.substr(0, text.length() - 1);
-
-			m_focus->SetText(text);
+			m_focus->SetCursorPositionRelative(-1);
 		}
-		else if (c == 22) // strg + v
+		else if (c == GLUT_KEY_RIGHT)
 		{
-			if (OpenClipboard(NULL)){
-				char *text = (char *)GetClipboardData(CF_TEXT);
-				CloseClipboard();
-				if (text != nullptr)
-				{
-					m_focus->SetText(m_focus->GetText().append(text));
-				}
-			}
-			
+			m_focus->SetCursorPositionRelative(1);
 		}
-		else
+		else if (c == GLUT_KEY_UP)
 		{
-			if (c == '\r')
-				c = '\n';
+			m_focus->SetCursorPositionRelativeVertical(-1);
 
-			char b[2] = { c, 0 };
-			std::string text = m_focus->GetText();
-
-			text = text.append(b);
-
-			m_focus->SetText(text);
+		}
+		else if (c == GLUT_KEY_DOWN)
+		{
+			m_focus->SetCursorPositionRelativeVertical(1);
 		}
 	}
 }
 
 int Scripting::lua_RegisterEvent(lua_State *L)
 {
+	std::string eventName = luaL_checkstring(L, 1);
+
+	this->m_registeredEvents.insert(eventName);
+
 	return 0;
 }
 
+void Scripting::PostLogEvent(char *text)
+{
+	if (this->m_luaEventHandlerId != -1)
+	{
+		if (this->m_registeredEvents.find("EVENT_GLOBAL_LOG") != this->m_registeredEvents.end())
+		{
+			lua_rawgeti(this->luaState, LUA_REGISTRYINDEX, this->m_luaEventHandlerId);
+			lua_pushstring(this->luaState, "EVENT_GLOBAL_LOG");
+			lua_pushstring(this->luaState, text);
+			lua_call(this->luaState, 2, 0); // event, event_text
+		}
+	}
+}
+
+int LUA_FUNCTION Scripting::lua_SetEventHandler(lua_State *L)
+{
+	if (lua_isfunction(L, 1) == 1)
+	{
+		lua_pushvalue(L, 1);
+		m_luaEventHandlerId = luaL_ref(L, LUA_REGISTRYINDEX);
+	}
+
+	return 0;
+}

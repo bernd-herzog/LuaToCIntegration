@@ -32,7 +32,7 @@ int LUA_FUNCTION UILabel::SetText(lua_State *L)
 {
 	_str = luaL_checkstring(L, 2);
 
-	int lines = 1;
+	int lines = 0;
 	for (auto c : _str)
 	{
 		if (c == '\n')
@@ -42,7 +42,7 @@ int LUA_FUNCTION UILabel::SetText(lua_State *L)
 	if (_str.rbegin() != _str.rend() && *_str.rbegin() == '\n')
 		lines--;
 
-	int max = lines * 14 - this->_dimSelf.height;
+	int max = lines * 14; //; - this->_dimSelf.height;
 	m_scroll = max;
 
 	if (m_scroll < 0)
@@ -116,7 +116,7 @@ void UILabel::Scroll(bool up)
 	m_scroll -= up ? 14 : -14;
 
 
-	int lines = 1;
+	int lines = 0;
 	for (auto c : _str)
 	{
 		if (c == '\n')
@@ -126,7 +126,7 @@ void UILabel::Scroll(bool up)
 	if (_str.rbegin() != _str.rend() && *_str.rbegin() == '\n')
 		lines--;
 
-	int max = lines * 14 - this->_dimSelf.height;
+	int max = lines * 14; // - this->_dimSelf.height;
 	if (m_scroll > max)
 	{
 		m_scroll = max;
