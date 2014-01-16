@@ -1,20 +1,3 @@
---[[
-
-Image
-Button		// mit text, nicht scrollbar, zentriert // fertig implementiert
-TextInput	// scrollbar, single/multiline, scroll on text input&mouse
-TextOutput	// scrollbar, single/multiline, scroll on mouse
-
-
-
-
-Text Scrollen
-textfeld autovervollständigung
-script nachladen
-bei resize nicht neu laden
-
-]]--
-
 str_VertexShader = "#version 120\n" .. 
 		"varying vec3 normal;\n" .. 
 		"varying vec4 pos;\n" .. 
@@ -100,9 +83,7 @@ function InitializeLayout()
 	ButtonShader:SetSize(280, 20);
 	ButtonShader:SetEventHandler(OnEvent);
 	ButtonShader:RegisterEvent("EVENT_BUTTON_CLICK");
-	
 end
-
 
 function OnEvent(source, event)
 	--TextField:SetText(event);
@@ -161,8 +142,6 @@ function OnEvent(source, event)
 	end
 end
 
-
-
 function OnGlobalEvent(event, arg1)
 	if (event == "EVENT_GLOBAL_LOG") then
 		Label:SetText(Label:GetText() .. arg1);
@@ -193,14 +172,3 @@ end
 function InstallAnotherShader()
 	InstallFragmentShader("#version 120\nvoid main(void){gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);}");
 end
-
-
---[[
-Milestones:
-1. 24.10.
-2. 03.12.
-3. 16.01.
-
-z = "Hallo Welt"; Dump(z)
-
-]]--
